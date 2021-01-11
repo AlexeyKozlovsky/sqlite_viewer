@@ -1,5 +1,3 @@
-# Hello 2
-
 import sys
 
 from PySide2 import QtWidgets
