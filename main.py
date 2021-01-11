@@ -39,14 +39,14 @@ class MainWindow(mainwindow.Ui_MainWindow, QtWidgets.QMainWindow):
 
     def initSignals(self):
         self.openButton.clicked.connect(self.openDb)
-        self.searchByQueryButton.clicked.connect(self.executeSqlQuery)
+        self.searchByQueryButton.clicked.connect(self.executeSqlQueryByText)
         self.addConditionButton.clicked.connect(self.addCondition)
         self.addToConditionsComboBoxButton.clicked.connect(self.chooseCondition)
         self.removeFromResultConditionsButton.clicked.connect(self.removeFromChosenCondition)
         self.selectColumnComboBox.currentIndexChanged.connect(self.updateOperatorComboBox)
         self.showQueryButton.clicked.connect(self.showQuery)
         self.clearQueryTextButton.clicked.connect(self.clearQuery)
-        # self.removeFromDBButton.clicked.connect(self.removeFromDb)
+        self.searchByConditionsButton.clicked.connect(self.searchByConditions)
 
     def initActions(self):
         self.actionExit.triggered.connect(sys.exit)
@@ -75,7 +75,7 @@ class MainWindow(mainwindow.Ui_MainWindow, QtWidgets.QMainWindow):
                 self.selectOperatorComboBox.model().item(i).setEnabled(False)
 
     def showQuery(self):
-        if not self.conditionChain or not self.table:
+        if not self.conditionChain or self.table == None:
             return
 
         query = QueryCreator.createQuery(self.conditionChain, self.table.name)
@@ -121,7 +121,7 @@ class MainWindow(mainwindow.Ui_MainWindow, QtWidgets.QMainWindow):
         print(str(self.conditionChain))
         query = QueryCreator.createQuery(self.conditionChain, self.table.name)
         print(query)
-        self.executeSqlQuery(query)
+        self.executeSqlQueryByConditions(query)
 
     def removeFromChosenCondition(self):
         selectedIndex = self.resultConditionsListWidget.currentRow()
@@ -133,7 +133,7 @@ class MainWindow(mainwindow.Ui_MainWindow, QtWidgets.QMainWindow):
 
         query = QueryCreator.createQuery(self.conditionChain, self.table.name)
         print(query)
-        self.executeSqlQuery(query)
+        self.executeSqlQueryByConditions(query)
 
         if not self.conditionChain.conditions:
             self.orRadioButton.setEnabled(False)
@@ -223,16 +223,28 @@ class MainWindow(mainwindow.Ui_MainWindow, QtWidgets.QMainWindow):
         self.initMainTableWidget()
 
 
-    def executeSqlQuery(self):
-        if not self.table:
+    def executeSqlQueryByText(self):
+        if self.table == None:
             return
 
         query = self.queryTextWidget.toPlainText()
+        if query == "":
+            return
+
         data = self.engine.execute(query)
         self.initResultTableWidget(data)
 
-    def executeSqlQuery(self, query):
-        if not self.table or not self.conditionChain:
+    def searchByConditions(self):
+        if self.table == None:
+            return
+
+        query = QueryCreator.createQuery(self.conditionChain, self.table.name)
+        self.executeSqlQueryByConditions(query)
+
+
+    def executeSqlQueryByConditions(self, query):
+        print(query)
+        if self.table == None or not self.conditionChain:
             return
 
         if query == "":
